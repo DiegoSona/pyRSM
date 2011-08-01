@@ -160,6 +160,9 @@ class SubspaceMethods(object):
     def _pre_call(self, dataset):
         """In the first call creates the data structure to preserve
         all the results.
+
+        :Parameters:
+          dataset : Datasets
         """
         if self.__counter == None:
             self.__featNumber = dataset.nfeatures
@@ -178,8 +181,7 @@ class SubspaceMethods(object):
           dataset : Dataset
             Data to be used to train and test the classifier on random subspace samplings
         :Returns:
-          results : (list, list)
-
+          (list, list)
             The first element of the tuple contains the the lists of
             the sensitivities computed for each feature for each run. The
             second element contains the list of precisions for

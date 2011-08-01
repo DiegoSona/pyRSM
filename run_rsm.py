@@ -8,7 +8,8 @@
 ##    This piece of code shows how to use the RSM framework on a fMRI
 ##    dataset.  In particular, in this implemenetation the Haxby
 ##    dataset has been used with a specific task (faces vs houses).
-##    The dataset on subject 1 only is loaded and transformed in a
+##    See http://dev.pymvpa.org/datadb/haxby2001.html 
+##    The bold dataset of first subject is loaded and transformed in a
 ##    binary classification problem.
 
 import os
@@ -122,20 +123,24 @@ def remodulate_data(data, experiment, shift=2, stretch=1):
 ##################################################
 if __name__=='__main__':
 
-    baseroot = "/home/sona/Development/Datasets/Haxby_datasets/subj1"   # <directory where data is located ...... new data will be saved here as well>
+    baseroot = "/path/to/dataset/"  # Data will be loaded and saved here
     datafilename  = os.path.join(baseroot, 'bold.nii.gz')         # fMRI data
     maskfilename  = os.path.join(baseroot, 'brain_mask.nii.gz')   # mask to avoid computations outside the brain - any other mask for ROIs can be used instead
     labelfilename = os.path.join(baseroot, 'labels.txt')          # labels
     
 
     classifier = RidgeReg()       # Currently the RSM framework only support Ridge Regression for theoretical reasons.
-    sample_size = 150              # Either the number of features to be sampled with RSM or the radius in millimeters for SearchLight
-    max_rsm_samples = 200         # Number of iterations over the brain, i.e., minimum number of times a voxel is selected
+    sample_size = 30              # Either the number of features to be sampled with RSM or the radius in millimeters for SearchLight
+    max_rsm_samples = 100         # Number of iterations over the brain, i.e., minimum number of times a voxel is selected
     samplingMethod = 'random'     # It could be 'random' or 'searchlight'
 
     ##################################################
     # Loading data
     # Loading the labels of Haxby dataset http://dev.pymvpa.org/datadb/haxby2001.html
+    # The labels files is made of 2 columns, one for the labels and
+    # one for the chunks.  There is a number of rows equivalent to the
+    # length of the bold dataset.  This piece of code split the two
+    # columns into linst to be used then when loading the dataset.
     f = open(labelfilename)
     raw_labelsChunks = f.read().split('\n') # read the file spliting the rows
     f.close()
@@ -169,12 +174,16 @@ if __name__=='__main__':
     
     
     ##################################################
-    # Execution of the selected method
+    # Execution of the selected method.  The samplingMethod parameter
+    # specifies whether a Random Subspace Method or Searchlight is
+    # used.
     mapper = SubspaceMethods(classifier, splitter=NFoldSplitter(), subspace=samplingMethod, size=sample_size)
     mapper.set_iters(max_rsm_samples)
     (sensitivities, precisions) = mapper(dataset)
 
-    # Averaging the computed measures over all runs (usefull in case of RSM)
+    # Averaging the computed measures over all runs.  Usefull in case
+    # of RSM and Searchlight sensitivities, since more than one result
+    # is provided for each feature.
     sens_map = []
     prec_map = []
     for i in range(len(sensitivities)):
